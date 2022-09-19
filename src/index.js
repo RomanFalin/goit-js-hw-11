@@ -12,9 +12,10 @@ const btnLoadMore = new LoadMoreBtn({
     selector: '.load-more',
     hidden: true,
 });
-btnLoadMore.hide();
 
 searchForm.addEventListener('submit', submitForm);
+btnLoadMore.refs.button.addEventListener('click', onLoadMore);
+btnLoadMore.hide();
 
 let queryItem = '';
 let currentPage = 1;
@@ -70,10 +71,15 @@ function scrollPage() {
     });
 }
 
+function clearGallery() {
+    galleryList.innerHTML = '';
+}
+
 async function submitForm(evt) {
     evt.preventDefault();
     queryItem = evt.currentTarget.searchQuery.value;
     currentPage = 1;
+    clearGallery();
 
     if (queryItem === '') {
         return;
@@ -98,3 +104,16 @@ async function submitForm(evt) {
     }
 }
 
+async function onLoadMore() {
+    currentPage += 1;
+    const response = await fetchImages(queryItem, currentPage);
+    createImageCard(response.hits);
+    lightbox.refresh();
+    currentHits += response.hits.length;
+    scrollPage();
+
+    if (currentHits === response.totalHits) {
+        btnLoadMore.hide();
+        Notify.info("We're sorry, but you've reached the end of search results.");
+    }
+}
